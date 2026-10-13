@@ -1,0 +1,12 @@
+{
+	"id": "youtube_music",
+	"name": "YouTube Music",
+	"version": "1.3.0",
+	"author": "NaviVani",
+	"description": "Youtube Music integration for Nari! Discover new music and enjoy your favourite songs with Youtube Music.",
+	"icon": "icon.jpg",
+	"api": 1,
+	"screenshots": [
+		"preview/1.jpg"
+	]
+}
