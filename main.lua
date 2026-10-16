@@ -99,14 +99,22 @@ local function save_covers()
 	end
 end
 
+local function sort_by(list, field)
+	local keys = {}
+	for _, item in ipairs(list) do
+		keys[item] = (item[field] or ""):lower()
+	end
+	table.sort(list, function(first, second) return keys[first] < keys[second] end)
+end
+
 local function build_index()
 	index = { tracks = {}, albums = {}, covers = index.covers }
 	if not state.library then
 		return
 	end
-	table.sort(state.library.tracks, function(first, second) return first.sort_title < second.sort_title end)
-	table.sort(state.library.albums, function(first, second) return first.title:lower() < second.title:lower() end)
-	table.sort(state.library.artists, function(first, second) return first.name:lower() < second.name:lower() end)
+	sort_by(state.library.tracks, "sort_title")
+	sort_by(state.library.albums, "title")
+	sort_by(state.library.artists, "name")
 	for _, track in ipairs(state.library.tracks) do
 		index.tracks[track.id] = track
 		remember(track)
@@ -137,9 +145,41 @@ local function by_artist(list, id, name)
 	return found
 end
 
+local function albums_by_artist()
+	local found, position = {}, {}
+	local function add(key, album)
+		if key and key ~= "" then
+			found[key] = found[key] or {}
+			local list = found[key]
+			if list[#list] ~= album then
+				table.insert(list, album)
+			end
+		end
+	end
+	for at, album in ipairs(state.library.albums) do
+		position[album] = at
+		add("id:" .. (album.artist_id or ""), album)
+		add("name:" .. (album.artist or ""), album)
+		for _, name in ipairs(album.artists or {}) do
+			add("name:" .. name, album)
+		end
+	end
+	return found, position
+end
+
 local function build_artists()
+	local grouped, position = albums_by_artist()
 	for _, artist in ipairs(state.library.artists) do
-		local albums = by_artist(state.library.albums, artist.id, artist.name)
+		local seen, albums = {}, {}
+		for _, key in ipairs({ "id:" .. (artist.id or ""), "name:" .. (artist.name or "") }) do
+			for _, album in ipairs(grouped[key] or {}) do
+				if not seen[album] then
+					seen[album] = true
+					table.insert(albums, album)
+				end
+			end
+		end
+		table.sort(albums, function(first, second) return position[first] < position[second] end)
 		artist.album_count = #albums
 		artist.cover_album_id = albums[1] and albums[1].id or artist.id
 	end

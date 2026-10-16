@@ -6,6 +6,7 @@
 	"description": "Youtube Music integration for Nari! Discover new music and enjoy your favourite songs with Youtube Music.",
 	"icon": "icon.jpg",
 	"api": 1,
+	"permissions": ["network", "clipboard"],
 	"screenshots": [
 		"preview/1.jpg"
 	]
